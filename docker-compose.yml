@@ -8,6 +8,7 @@
 #   docker compose up -d postgres                    # DB only
 #   docker compose up -d postgres smpp-gw            # DB + SMPP gateway
 #   docker compose up -d postgres smpp-gw asterisk   # DB + SMPP + Asterisk
+#     (uncomment the asterisk service block below first!)
 #
 # Run Node.js on host for hot-reload dev:
 #   docker compose up -d postgres smpp-gw
@@ -80,25 +81,36 @@ services:
       - "host.docker.internal:host-gateway"
 
   # ─── Asterisk PBX ───────────────────────────────────────────────────────
-  # Uncomment for local Asterisk development. The Node.js asterisk-bridge.cjs
-  # connects to this container via AMI (port 5038) for SIP↔SMS integration.
-  # Set ASTERISK_ENABLED=true in the Node.js env to activate the bridge.
+  # Uncomment to run Asterisk in Docker for local SIP↔SMS development.
   #
-  # After starting, configure the bridge via the UI:
-  #   POST /api/asterisk/servers with ami_host=asterisk, ami_port=5038
+  # After starting, configure AMI access so the bridge can connect:
+  #   docker compose exec asterisk bash
+  #   cat >> /etc/asterisk/manager.conf << 'EOF'
+  #   [admin]
+  #   secret = net2app-ami-secret
+  #   deny = 0.0.0.0/0.0.0.0
+  #   permit = 172.16.0.0/12
+  #   read = system,call,log,verbose,command,agent,user,config,originate
+  #   write = system,call,log,verbose,command,agent,user,config,originate
+  #   EOF
+  #   asterisk -rx 'manager reload'
+  #
+  # Then register the server in the bridge via the UI or API:
+  #   POST /api/asterisk/servers
+  #     { name, ami_host: "asterisk", ami_port: 5038,
+  #       ami_username: "admin", ami_secret: "net2app-ami-secret" }
+  #
+  # IMPORTANT: Set ASTERISK_ENABLED=true for the Node.js server (either
+  # in .env for host dev, or in the node-app environment block below).
   #
   # asterisk:
-  #   image: mlan/asterisk:latest
+  #   image: andrius/asterisk:latest
   #   container_name: net2app-asterisk
   #   restart: unless-stopped
   #   ports:
   #     - "5060:5060/udp"   # SIP
   #     - "5038:5038"        # AMI (Asterisk Manager Interface)
   #     - "10000-10099:10000-10099/udp"  # RTP media
-  #   environment:
-  #     AMI_USERNAME: admin
-  #     AMI_PASSWORD: net2app-ami-secret
-  #     SIP_NETWORK: "172.16.0.0/12"
   #   volumes:
   #     - asterisk-etc:/etc/asterisk
   #     - asterisk-spool:/var/spool/asterisk
@@ -126,7 +138,7 @@ services:
   #     DB_PASSWORD: SmsPlatform2024Secure
   #     JAVA_GATEWAY_URL: "http://smpp-gw:8081"
   #     JAVA_GATEWAY_TIMEOUT_MS: "3000"
-  #     ASTERISK_ENABLED: "false"
+  #     ASTERISK_ENABLED: "true"   # Set to "true" when using the asterisk service
   #     PROXY_REGISTER_SECRET: "${PROXY_REGISTER_SECRET:-net2app-proxy-2024}"
   #     INTERNAL_TOKEN: "${INTERNAL_TOKEN:-}"
   #   depends_on:
