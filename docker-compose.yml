@@ -44,6 +44,9 @@ services:
       - ./src/database/blocking_migrations.sql:/docker-entrypoint-initdb.d/04-blocking-migrations.sql:ro
       - ./src/database/voice_otp_migrations.sql:/docker-entrypoint-initdb.d/05-voice-otp-migrations.sql:ro
       - ./src/database/client_rate_ip_migrations.sql:/docker-entrypoint-initdb.d/06-client-rate-ip-migrations.sql:ro
+      # Seed data (optional — uncomment to pre-populate the database)
+      # - ./database_data.sql:/docker-entrypoint-initdb.d/07-seed-data.sql:ro
+      # - ./database_full.sql:/docker-entrypoint-initdb.d/08-full-dump.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sms_user -d sms_platform"]
       interval: 5s

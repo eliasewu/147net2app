@@ -5,6 +5,7 @@ WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
+# Copy everything (filtered by .dockerignore) and build the SPA
 COPY . .
 RUN npm run build
 
@@ -22,19 +23,8 @@ RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force
 # Copy built SPA from builder
 COPY --from=builder /build/dist ./dist
 
-# Copy backend server files
-COPY server.cjs .
-COPY external-api.cjs .
-COPY users-api.cjs .
-COPY apiExtensions.cjs .
-COPY emailService.cjs .
-COPY asterisk-bridge.cjs .
-COPY gateway-bridge.cjs .
-COPY number-validation-providers.cjs .
-COPY social-pairing.cjs .
-COPY harness.js .
-COPY src/services/ ./src/services/
-COPY src/config/ ./src/config/
+# Copy everything needed at runtime (filtered by .dockerignore)
+COPY . .
 
 # Runtime data directory (Asterisk configs, audio uploads, etc.)
 RUN mkdir -p data && chown -R nodeapp:nodeapp /app

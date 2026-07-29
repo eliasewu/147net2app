@@ -1,0 +1,70 @@
+# =============================================================================
+# .dockerignore — Keep the Docker build context lean and fast
+# =============================================================================
+
+# Dependencies (re-installed inside Docker)
+node_modules/
+
+# Build output (produced by the Docker multi-stage build)
+dist/
+
+# Git (huge, never needed in the image)
+.git/
+.gitignore
+.gitattributes
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+*.test.ts
+*.test.tsx
+*.test.js
+test-setup.ts
+vitest.config.ts
+
+# Documentation images / large assets
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webm
+
+# Archives & backups
+*.zip
+*.tar.gz
+*.bak
+*.bak.*
+
+# PM2 / runtime cruft
+/root/
+data/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# CI / scripts (not needed at runtime)
+.github/
+scripts/
+CONTRIBUTING.md
+*.md
+!README.md
+
+# Java build artifacts
+smpp-gateway/target/
