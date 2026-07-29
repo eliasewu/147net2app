@@ -130,46 +130,11 @@ jobs:
           path: /tmp/srv_smoke.log
           if-no-files-found: ignore
 
-  # =========================================================
-  # Build the Java 21 SMPP gateway jar via Maven.
-  # Runs in parallel with the verify job — no dependency on
-  # Node/Postgres. The shaded fat jar is uploaded as a CI
-  # artifact so every push to main and every PR produces a
-  # deployable binary without a local Maven install.
-  # =========================================================
-  build-gateway:
-    name: Build Java SMPP Gateway (mvn package)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Build with Maven (mvn package)
-        run: mvn package --batch-mode
-        working-directory: smpp-gateway
-
-      - name: Upload SMPP gateway jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: smpp-gateway-jar
-          path: smpp-gateway/target/smpp-gateway.jar
-          if-no-files-found: error
-
 # ============================================================
 # TODO (future polish, NOT shipped in v1):
 # - Split into parallel jobs (vitest, tsc, smoke) for ~30% speedup.
 # - Add `actions/cache@v4` for the build output once we have a
 #   `vite build` smoke phase.
-# - Add a badge to README.md (shields.io + workflow status).
 # - Add CODEOWNERS so review auto-assignment kicks in on /src
 #   vs /server.cjs changes.
 # ============================================================

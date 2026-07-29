@@ -5,6 +5,7 @@
 > Vite + Node Express on PostgreSQL.
 
 [![CI](https://github.com/eliasewu/147net2app/actions/workflows/ci.yml/badge.svg)](https://github.com/eliasewu/147net2app/actions/workflows/ci.yml)
+[![SMPP Gateway](https://github.com/eliasewu/147net2app/actions/workflows/ci-gateway.yml/badge.svg)](https://github.com/eliasewu/147net2app/actions/workflows/ci-gateway.yml)
 
 ---
 
