@@ -9,17 +9,22 @@
 
 ---
 
-## 🚀 One-Line Deploy & Install
+## 🚀 One-Line Deploy (Fresh Server)
 
 ```bash
-git clone https://github.com/eliasewu/147net2app.git && cd 147net2app && npm install && npm run build && node server.cjs
+git clone https://github.com/eliasewu/147net2app.git && cd 147net2app && bash scripts/deploy.sh
 ```
 
-**What this does:** clones the repo, installs all dependencies (React, Express, PostgreSQL, SMPP, Asterisk bridge, Baileys WhatsApp, email/nodemailer), builds the Vite SPA, and starts the server on port 3000.
+**This single command** clones the repo, installs Node.js 22 if missing, installs all npm dependencies, creates the PostgreSQL user + database, loads the schema + all 6 migrations, builds the Vite SPA, and starts the server on port 3000.
 
-**Prerequisites:** Node.js 20+, PostgreSQL running on :5432 with database `sms_platform` and user `sms_user`.
+**Prerequisites:** A Linux server with `sudo` access and `curl` installed. Everything else (Node.js, npm deps, PostgreSQL setup) is handled automatically.
 
-### Quick setup with DB:
+### Deploy via curl (no clone needed):
+```bash
+curl -sSL https://raw.githubusercontent.com/eliasewu/147net2app/main/scripts/deploy.sh | bash
+```
+
+### Manual setup (if you prefer step-by-step):
 ```bash
 # 1. Clone & install
 git clone https://github.com/eliasewu/147net2app.git && cd 147net2app && npm install

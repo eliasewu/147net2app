@@ -14,7 +14,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help up up-all up-full down dev test test-watch typecheck smoke verify \
         build build-spa build-gateway build-docker-node build-docker-gateway \
-        clean clean-all logs install start db-init
+        clean clean-all logs install start deploy db-init
 
 # ─── Docker Compose ───────────────────────────────────────────────────────
 
@@ -84,6 +84,9 @@ build-docker-gateway: ## Build the Java SMPP Gateway Docker image
 	docker compose build smpp-gw
 
 # ─── Database ─────────────────────────────────────────────────────────────
+
+deploy: ## One-command fresh server deploy (auto-installs Node.js, sets up PostgreSQL, builds, starts)
+	bash scripts/deploy.sh
 
 db-init: ## Load schema + migrations into PostgreSQL
 	@echo "==> Loading schema.sql..."
