@@ -4,6 +4,8 @@
 > routing, license-tier billing, delivery-receipt tracking. React SPA on
 > Vite + Node Express on PostgreSQL.
 
+[![CI](https://github.com/eliasewu/147net2app/actions/workflows/ci.yml/badge.svg)](https://github.com/eliasewu/147net2app/actions/workflows/ci.yml)
+
 ---
 
 ## 🚀 One-Line Deploy & Install
