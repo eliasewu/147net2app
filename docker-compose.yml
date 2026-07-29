@@ -5,13 +5,13 @@
 #   docker compose up -d
 #
 # Individual services:
-#   docker compose up -d postgres           # DB only
-#   docker compose up -d postgres smpp-gw   # DB + SMPP gateway
-#   docker compose up -d node-app           # Node.js app (needs DB)
+#   docker compose up -d postgres                    # DB only
+#   docker compose up -d postgres smpp-gw            # DB + SMPP gateway
+#   docker compose up -d postgres smpp-gw asterisk   # DB + SMPP + Asterisk
 #
 # Run Node.js on host for hot-reload dev:
 #   docker compose up -d postgres smpp-gw
-#   npm run dev                              # Vite proxies /api → :3000
+#   npm run dev                                      # Vite proxies /api → :3000
 #
 # View logs:
 #   docker compose logs -f
@@ -79,6 +79,30 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # ─── Asterisk PBX ───────────────────────────────────────────────────────
+  # Uncomment for local Asterisk development. The Node.js asterisk-bridge.cjs
+  # connects to this container via AMI (port 5038) for SIP↔SMS integration.
+  # Set ASTERISK_ENABLED=true in the Node.js env to activate the bridge.
+  #
+  # After starting, configure the bridge via the UI:
+  #   POST /api/asterisk/servers with ami_host=asterisk, ami_port=5038
+  #
+  # asterisk:
+  #   image: mlan/asterisk:latest
+  #   container_name: net2app-asterisk
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5060:5060/udp"   # SIP
+  #     - "5038:5038"        # AMI (Asterisk Manager Interface)
+  #     - "10000-10099:10000-10099/udp"  # RTP media
+  #   environment:
+  #     AMI_USERNAME: admin
+  #     AMI_PASSWORD: net2app-ami-secret
+  #     SIP_NETWORK: "172.16.0.0/12"
+  #   volumes:
+  #     - asterisk-etc:/etc/asterisk
+  #     - asterisk-spool:/var/spool/asterisk
+
   # ─── Node.js App (Express + Vite SPA) ───────────────────────────────────
   # Uncomment for full Docker stack. Leave commented to run Node on host
   # for hot-reload dev with `npm run dev`.
@@ -114,3 +138,7 @@ services:
 volumes:
   pgdata:
     driver: local
+  # asterisk-etc:
+  #   driver: local
+  # asterisk-spool:
+  #   driver: local

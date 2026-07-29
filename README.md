@@ -40,11 +40,24 @@ psql -U sms_user -d sms_platform -f src/database/client_rate_ip_migrations.sql
 npm run build && node server.cjs
 ```
 
+### Docker quick start:
+```bash
+# DB + SMPP Gateway (run Node.js on host for dev)
+docker compose up -d postgres smpp-gw
+
+# DB + SMPP + Asterisk (full infrastructure)
+docker compose up -d postgres smpp-gw asterisk
+
+# Then start the app
+npm run dev
+```
+
 ### Components included:
 | Component | Description |
 | --- | --- |
 | **SMPP Gateway** (`smpp-gateway/`) | Java SMPP v3.4/v5.0 client/server for supplier interconnects (ESME ↔ SMSC) |
 | **Asterisk Bridge** (`asterisk-bridge.cjs`) | Node.js bridge for Asterisk PBX integration (SIP ↔ SMS gateway) |
+| **Asterisk PBX** (Docker) | Asterisk container with AMI on :5038, SIP on :5060/udp |
 | **Gateway Bridge** (`gateway-bridge.cjs`) | Multi-protocol gateway bridge for SMS routing |
 | **Social Pairing** (`social-pairing.cjs`) | WhatsApp/OTP device pairing via Baileys |
 | **Email Service** (`emailService.cjs`) | Nodemailer-based email/SMTP delivery |
