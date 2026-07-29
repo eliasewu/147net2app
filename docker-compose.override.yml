@@ -78,10 +78,12 @@ services:
       smpp-gw:
         condition: service_started
     # Run Express (backend) and Vite (frontend HMR) side by side.
-    # Node --watch reloads server.cjs on backend changes;
+    # npm install runs once at startup to ensure deps match the host's
+    # package.json. Node --watch reloads server.cjs on backend changes;
     # Vite HMR pushes frontend changes to the browser instantly.
     command: >
-      sh -c "node --inspect=0.0.0.0:9229 --watch server.cjs &
+      sh -c "npm install --legacy-peer-deps &&
+             node --inspect=0.0.0.0:9229 --watch server.cjs &
              npx vite --host 0.0.0.0 --port 5173"
     stdin_open: true
     tty: true
