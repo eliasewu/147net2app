@@ -19,8 +19,14 @@ git clone https://github.com/eliasewu/147net2app.git && cd 147net2app && bash sc
 
 **Prerequisites:** A Linux server with `sudo` access and `curl` installed. Everything else (Node.js, npm deps, PostgreSQL setup) is handled automatically.
 
-### Deploy via curl (no clone needed):
+### Deploy via curl (inspect before piping):
 ```bash
+# Download and inspect the script first
+curl -sSLO https://raw.githubusercontent.com/eliasewu/147net2app/main/scripts/deploy.sh
+less deploy.sh
+bash deploy.sh
+
+# Or pipe directly (review the script at the URL above)
 curl -sSL https://raw.githubusercontent.com/eliasewu/147net2app/main/scripts/deploy.sh | bash
 ```
 
