@@ -1,9 +1,10 @@
 # =============================================================================
 # Dockerfile.dev — Development image for docker-compose.override.yml
 # =============================================================================
-# Lightweight Node.js image for hot-reload development. Source code is
-# mounted as a volume at runtime, so `node --watch` picks up changes
-# instantly. The Vite dev server proxies /api → Express on :3000.
+# Minimal Node.js image for hot-reload development. Source code is mounted
+# as a volume at runtime and node_modules lives in an anonymous volume, so
+# there's no need to COPY or npm ci in the image build — it all happens at
+# container start via the volume mounts.
 # =============================================================================
 FROM node:22-alpine
 
@@ -11,13 +12,12 @@ RUN addgroup -g 1000 nodeapp && adduser -u 1000 -G nodeapp -D nodeapp
 
 WORKDIR /app
 
-# Install dependencies (will be overridden by volume mount at runtime,
-# but having them here makes the first `docker compose up` faster)
-COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps && npm cache clean --force
+# Pre-create node_modules so the anonymous volume has a home.
+# Actual dependencies are installed at container start.
+RUN mkdir -p node_modules && chown -R nodeapp:nodeapp /app
 
 USER nodeapp
 
-EXPOSE 3000 9229
+EXPOSE 3000 5173 9229
 
 CMD ["node", "--watch", "server.cjs"]

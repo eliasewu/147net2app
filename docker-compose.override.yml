@@ -22,7 +22,8 @@ services:
   postgres:
     # No changes to the DB itself — just adding an Adminer sidecar below
 
-  # ─── Adminer (DB web UI) — spin up alongside postgres in dev ────────────
+  # ─── Adminer (DB web UI) — optional, requires --profile dev ─────────────
+  # Start with: docker compose --profile dev up -d
   adminer:
     image: adminer:latest
     container_name: net2app-adminer
@@ -49,8 +50,9 @@ services:
     container_name: net2app-node-dev
     restart: unless-stopped
     ports:
-      - "3000:3000"     # Express API + Vite dev server
-      - "9229:9229"     # Node.js inspector (attach debugger)
+      - "3000:3000"     # Express API
+      - "5173:5173"     # Vite dev server with HMR
+      - "9229:9229"     # Node.js inspector (attach Chrome DevTools / VS Code)
     environment:
       PORT: "3000"
       NODE_ENV: development
@@ -65,23 +67,22 @@ services:
       ASTERISK_ENABLED: "${ASTERISK_ENABLED:-false}"
       PROXY_REGISTER_SECRET: "${PROXY_REGISTER_SECRET:-net2app-proxy-dev}"
       INTERNAL_TOKEN: "${INTERNAL_TOKEN:-dev-internal-token}"
-      # Vite HMR websocket (reaches the browser through the host)
-      VITE_HMR_HOST: "0.0.0.0"
     volumes:
       # Mount source code for live reload — no rebuild needed
       - .:/app
-      # But keep node_modules inside the container (don't override)
+      # Keep node_modules inside the container (don't override with host)
       - /app/node_modules
-      # Mount dist separately so Vite writes build output inside container
-      - vite-dist:/app/dist
     depends_on:
       postgres:
         condition: service_healthy
       smpp-gw:
         condition: service_started
-    # Node --inspect flags for attaching Chrome DevTools or VS Code
+    # Run Express (backend) and Vite (frontend HMR) side by side.
+    # Node --watch reloads server.cjs on backend changes;
+    # Vite HMR pushes frontend changes to the browser instantly.
     command: >
-      sh -c "npm install --legacy-peer-deps && node --inspect=0.0.0.0:9229 --watch server.cjs"
+      sh -c "node --inspect=0.0.0.0:9229 --watch server.cjs &
+             npx vite --host 0.0.0.0 --port 5173"
     stdin_open: true
     tty: true
 
@@ -108,7 +109,9 @@ services:
 
   # ─── Asterisk — verbose logging for AMI debugging ───────────────────────
   asterisk:
-    # Add detailed SIP/AMI logging when developing the bridge
+    image: andrius/asterisk:latest
+    container_name: net2app-asterisk
+    restart: unless-stopped
     environment:
       ASTERISK_VERBOSE: "5"
     ports:
