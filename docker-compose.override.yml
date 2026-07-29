@@ -1,0 +1,121 @@
+# =============================================================================
+# docker-compose.override.yml — Development Overrides
+# =============================================================================
+# Docker Compose auto-merges this file with docker-compose.yml when you run
+# `docker compose up`. No need to pass -f flags — just run:
+#
+#   docker compose up -d
+#
+# To skip overrides and use base config only:
+#   docker compose -f docker-compose.yml up -d
+#
+# What this file does:
+#   - Node.js: mounts source for hot-reload, enables debugger on :9229,
+#     switches to `npm run dev` (Vite HMR), sets NODE_ENV=development
+#   - SMPP Gateway: adds JDWP debug port :5005, verbose JVM logging
+#   - PostgreSQL: adds Adminer on :8080 for visual DB inspection
+#   - Asterisk: enables verbose AMI logging
+# =============================================================================
+
+services:
+  # ─── PostgreSQL — add Adminer web UI ────────────────────────────────────
+  postgres:
+    # No changes to the DB itself — just adding an Adminer sidecar below
+
+  # ─── Adminer (DB web UI) — spin up alongside postgres in dev ────────────
+  adminer:
+    image: adminer:latest
+    container_name: net2app-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - dev
+      - tools
+
+  # ─── Node.js App — full dev mode with hot-reload ────────────────────────
+  node-app:
+    # Override the commented-out base service: build from Dockerfile.dev
+    # for a fast edit-save-reload loop without rebuilding the image.
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: net2app-node-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"     # Express API + Vite dev server
+      - "9229:9229"     # Node.js inspector (attach debugger)
+    environment:
+      PORT: "3000"
+      NODE_ENV: development
+      JWT_SECRET: "${JWT_SECRET:-dev-jwt-secret-not-for-production}"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: sms_platform
+      DB_USER: sms_user
+      DB_PASSWORD: SmsPlatform2024Secure
+      JAVA_GATEWAY_URL: "http://smpp-gw:8081"
+      JAVA_GATEWAY_TIMEOUT_MS: "3000"
+      ASTERISK_ENABLED: "${ASTERISK_ENABLED:-false}"
+      PROXY_REGISTER_SECRET: "${PROXY_REGISTER_SECRET:-net2app-proxy-dev}"
+      INTERNAL_TOKEN: "${INTERNAL_TOKEN:-dev-internal-token}"
+      # Vite HMR websocket (reaches the browser through the host)
+      VITE_HMR_HOST: "0.0.0.0"
+    volumes:
+      # Mount source code for live reload — no rebuild needed
+      - .:/app
+      # But keep node_modules inside the container (don't override)
+      - /app/node_modules
+      # Mount dist separately so Vite writes build output inside container
+      - vite-dist:/app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      smpp-gw:
+        condition: service_started
+    # Node --inspect flags for attaching Chrome DevTools or VS Code
+    command: >
+      sh -c "npm install --legacy-peer-deps && node --inspect=0.0.0.0:9229 --watch server.cjs"
+    stdin_open: true
+    tty: true
+
+  # ─── SMPP Gateway — debug mode with JDWP ────────────────────────────────
+  smpp-gw:
+    # Add JDWP remote debug port and verbose JVM flags on top of base config
+    ports:
+      - "2775:2775"
+      - "8081:8081"
+      - "5005:5005"     # JDWP (Java Debug Wire Protocol) — attach IDE
+    environment:
+      ESMC_HOST: "0.0.0.0"
+      ESMC_PORT: "2775"
+      CTRL_PORT: "8081"
+      BACKEND_BASE: "http://node-app:3000"
+      BACKEND_INTERNAL_TOKEN: "${INTERNAL_TOKEN:-dev-internal-token}"
+      # Enable debug logging in the JVM
+      JAVA_OPTS: >
+        --enable-preview
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+        -XX:+UseZGC
+        -XX:MaxRAMPercentage=75
+        -Dorg.slf4j.simpleLogger.defaultLogLevel=debug
+
+  # ─── Asterisk — verbose logging for AMI debugging ───────────────────────
+  asterisk:
+    # Add detailed SIP/AMI logging when developing the bridge
+    environment:
+      ASTERISK_VERBOSE: "5"
+    ports:
+      - "5060:5060/udp"
+      - "5038:5038"
+
+volumes:
+  # Dev-specific volume for Vite build output (fast, ephemeral)
+  vite-dist:
+    driver: local
