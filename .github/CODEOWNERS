@@ -1,0 +1,63 @@
+# =============================================================================
+# CODEOWNERS — Automatic review assignment for NET2APP Hub
+# =============================================================================
+# When a PR touches files matching these patterns, GitHub automatically
+# requests a review from the listed owners. Last match wins.
+#
+# Syntax:  <pattern>  @owner1 @owner2 …
+# =============================================================================
+
+# ─── Global fallback (everything not explicitly owned below) ──────────────
+*  @eliasewu
+
+# ─── Frontend (React + TypeScript SPA) ────────────────────────────────────
+/src/                                         @eliasewu
+/vite.config.ts                               @eliasewu
+/vitest.config.ts                             @eliasewu
+/tsconfig.json                                @eliasewu
+/tsconfig.node.json                           @eliasewu
+/postcss.config.js                            @eliasewu
+/index.html                                   @eliasewu
+
+# ─── Backend (Node.js Express server) ─────────────────────────────────────
+/server.cjs                                   @eliasewu
+/external-api.cjs                             @eliasewu
+/users-api.cjs                                @eliasewu
+/apiExtensions.cjs                            @eliasewu
+/emailService.cjs                             @eliasewu
+/asterisk-bridge.cjs                          @eliasewu
+/gateway-bridge.cjs                           @eliasewu
+/number-validation-providers.cjs              @eliasewu
+/social-pairing.cjs                           @eliasewu
+/harness.js                                   @eliasewu
+/src/services/                                @eliasewu
+/src/config/                                  @eliasewu
+
+# ─── Database ─────────────────────────────────────────────────────────────
+/src/database/                                @eliasewu
+/database_data.sql                            @eliasewu
+/database_full.sql                            @eliasewu
+
+# ─── Java SMPP Gateway ────────────────────────────────────────────────────
+/smpp-gateway/                                @eliasewu
+
+# ─── CI / Infrastructure ──────────────────────────────────────────────────
+/.github/                                     @eliasewu
+/docker-compose.yml                           @eliasewu
+/docker-compose.override.yml                  @eliasewu
+/Dockerfile                                   @eliasewu
+/Dockerfile.dev                               @eliasewu
+/.dockerignore                                @eliasewu
+
+# ─── Documentation ─────────────────────────────────────────────────────────
+/README.md                                    @eliasewu
+/CONTRIBUTING.md                              @eliasewu
+
+# ─── Scripts ───────────────────────────────────────────────────────────────
+/scripts/                                     @eliasewu
+
+# ─── Config files ──────────────────────────────────────────────────────────
+/package.json                                 @eliasewu
+/package-lock.json                            @eliasewu
+/.env.example                                 @eliasewu
+/.gitignore                                   @eliasewu
