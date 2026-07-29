@@ -45,7 +45,7 @@ npm run build && node server.cjs
 # DB + SMPP Gateway (run Node.js on host for dev)
 docker compose up -d postgres smpp-gw
 
-# DB + SMPP + Asterisk (full infrastructure)
+# DB + SMPP + Asterisk (uncomment asterisk service block first!)
 docker compose up -d postgres smpp-gw asterisk
 
 # Then start the app
