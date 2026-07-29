@@ -1,0 +1,113 @@
+# =============================================================================
+# NET2APP Hub — Docker Compose (Local Development)
+# =============================================================================
+# Quick start (all services):
+#   docker compose up -d
+#
+# Individual services:
+#   docker compose up -d postgres           # DB only
+#   docker compose up -d postgres smpp-gw   # DB + SMPP gateway
+#   docker compose up -d node-app           # Node.js app (needs DB)
+#
+# Run Node.js on host for hot-reload dev:
+#   docker compose up -d postgres smpp-gw
+#   npm run dev                              # Vite proxies /api → :3000
+#
+# View logs:
+#   docker compose logs -f
+#
+# Tear down (keep data):
+#   docker compose down
+# Tear down (destroy data):
+#   docker compose down -v
+# =============================================================================
+
+services:
+  # ─── PostgreSQL 16 ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: net2app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sms_user
+      POSTGRES_PASSWORD: SmsPlatform2024Secure
+      POSTGRES_DB: sms_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent data — survives `docker compose down`
+      - pgdata:/var/lib/postgresql/data
+      # Auto-load schema on first init (runs in alphabetical order)
+      - ./src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./src/database/api_connector_migrations.sql:/docker-entrypoint-initdb.d/02-api-connector-migrations.sql:ro
+      - ./src/database/multi_channel_migrations.sql:/docker-entrypoint-initdb.d/03-multi-channel-migrations.sql:ro
+      - ./src/database/blocking_migrations.sql:/docker-entrypoint-initdb.d/04-blocking-migrations.sql:ro
+      - ./src/database/voice_otp_migrations.sql:/docker-entrypoint-initdb.d/05-voice-otp-migrations.sql:ro
+      - ./src/database/client_rate_ip_migrations.sql:/docker-entrypoint-initdb.d/06-client-rate-ip-migrations.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sms_user -d sms_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ─── Java 21 SMPP Gateway ───────────────────────────────────────────────
+  smpp-gw:
+    build:
+      context: ./smpp-gateway
+      dockerfile: Dockerfile
+    container_name: net2app-smpp-gateway
+    restart: unless-stopped
+    ports:
+      - "2775:2775"   # SMPP ESME listener (SMS clients & suppliers connect here)
+      - "8081:8081"   # REST control plane (Node.js gateway-bridge talks here)
+    environment:
+      ESMC_HOST: "0.0.0.0"
+      ESMC_PORT: "2775"
+      CTRL_PORT: "8081"
+      # Use host.docker.internal to reach the Node.js server on the host.
+      # For all-Docker mode, change to: http://node-app:3000
+      BACKEND_BASE: "http://host.docker.internal:3000"
+      BACKEND_INTERNAL_TOKEN: "${INTERNAL_TOKEN:-}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Allow host.docker.internal resolution (Linux)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ─── Node.js App (Express + Vite SPA) ───────────────────────────────────
+  # Uncomment for full Docker stack. Leave commented to run Node on host
+  # for hot-reload dev with `npm run dev`.
+  #
+  # node-app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: net2app-node
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     PORT: "3000"
+  #     NODE_ENV: production
+  #     JWT_SECRET: "${JWT_SECRET:-net2app-hub-local}"
+  #     DB_HOST: postgres
+  #     DB_PORT: "5432"
+  #     DB_NAME: sms_platform
+  #     DB_USER: sms_user
+  #     DB_PASSWORD: SmsPlatform2024Secure
+  #     JAVA_GATEWAY_URL: "http://smpp-gw:8081"
+  #     JAVA_GATEWAY_TIMEOUT_MS: "3000"
+  #     ASTERISK_ENABLED: "false"
+  #     PROXY_REGISTER_SECRET: "${PROXY_REGISTER_SECRET:-net2app-proxy-2024}"
+  #     INTERNAL_TOKEN: "${INTERNAL_TOKEN:-}"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     smpp-gw:
+  #       condition: service_started
+
+volumes:
+  pgdata:
+    driver: local
