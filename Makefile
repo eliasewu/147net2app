@@ -12,18 +12,21 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help up down dev test verify build clean logs install start db-init
+.PHONY: help up up-all up-full down dev test test-watch typecheck smoke verify \
+        build build-spa build-gateway build-docker-node build-docker-gateway \
+        clean clean-all logs install start db-init
 
 # ─── Docker Compose ───────────────────────────────────────────────────────
 
 up: ## Start PostgreSQL + SMPP Gateway (Docker)
 	docker compose up -d postgres smpp-gw
 
-up-all: ## Start all Docker services (postgres, SMPP gateway, Asterisk)
+up-all: ## Start all services (postgres + SMPP + Asterisk — uncomment asterisk first!)
 	@echo "==> Uncomment the asterisk service block in docker-compose.yml first!"
 	docker compose up -d postgres smpp-gw asterisk
 
-up-dev: ## Start with dev overrides (hot-reload, debug ports, Adminer)
+up-full: ## Start all services including node-app (full Docker stack)
+	@echo "==> Uncomment node-app and asterisk service blocks in docker-compose.yml first!"
 	docker compose up -d
 
 down: ## Stop all Docker services
@@ -34,11 +37,12 @@ logs: ## Tail Docker logs
 
 # ─── Development ──────────────────────────────────────────────────────────
 
-dev: up ## Start Docker infra + run Vite dev server on host
-	@echo "==> Docker services running. Starting Vite dev server..."
-	@echo "    Frontend : http://localhost:5173"
-	@echo "    API      : http://localhost:3000"
-	npm run dev
+dev: up ## Start Docker infra + Express backend + Vite HMR (one command)
+	@echo "==> Docker services running. Starting Express + Vite..."
+	@echo "    Frontend  : http://localhost:5173"
+	@echo "    API       : http://localhost:3000"
+	@echo "    Debugger  : chrome://inspect (attach to :9229)"
+	node --watch server.cjs & npx vite --host 0.0.0.0
 
 install: ## Install Node.js dependencies
 	npm install --legacy-peer-deps
