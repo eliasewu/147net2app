@@ -1,0 +1,32 @@
+# =====================================================================
+# robots.txt — NET2APP Hub
+# =====================================================================
+# This is an admin panel / SMS gateway management interface.
+# There is no public content worth indexing. All paths are restricted.
+# =====================================================================
+
+User-agent: *
+Disallow: /
+
+# Explicitly block the most crawled admin paths
+Disallow: /api/
+Disallow: /login
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /clients
+Disallow: /suppliers
+Disallow: /rates
+Disallow: /billing
+Disallow: /sms-logs
+Disallow: /bind-status
+Disallow: /system/
+Disallow: /testing
+Disallow: /uploads/
+Disallow: /notifications/
+
+# Crawl-delay for any bot that ignores the disallow (in seconds)
+Crawl-delay: 60
+
+# Allow only legitimate search engine crawlers (optional — all are blocked above)
+# User-agent: Googlebot
+# Allow: /

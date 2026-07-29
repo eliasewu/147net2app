@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment & secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backups
+*.bak
+*.bak.*
+*.original
+*.localstorage
+
+# Archives
+*.zip
+*.tar.gz
+
+# PM2
+/root/.pm2/
+
+# IDE
+.vscode/
+.idea/
+
+# Data dumps
+data/
+*.sql.gz
+
+# Local shell config (exclude home config leaks)
+.bash*
+.profile
+.ssh/
+.cache/
+.sudo_as_admin_successful
+
+# Server backup swap files
+server.cjs.*
