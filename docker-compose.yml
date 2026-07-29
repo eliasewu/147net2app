@@ -102,18 +102,20 @@ services:
   #
   # IMPORTANT: Set ASTERISK_ENABLED=true for the Node.js server (either
   # in .env for host dev, or in the node-app environment block below).
-  #
-  # asterisk:
-  #   image: andrius/asterisk:latest
-  #   container_name: net2app-asterisk
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5060:5060/udp"   # SIP
-  #     - "5038:5038"        # AMI (Asterisk Manager Interface)
-  #     - "10000-10099:10000-10099/udp"  # RTP media
-  #   volumes:
-  #     - asterisk-etc:/etc/asterisk
-  #     - asterisk-spool:/var/spool/asterisk
+  #  #   asterisk:
+  #     image: andrius/asterisk:latest
+  #     container_name: net2app-asterisk
+  #     restart: unless-stopped
+  #     ports:
+  #       - "5060:5060/udp"   # SIP
+  #       - "5038:5038"        # AMI (Asterisk Manager Interface)
+  #       - "10000-10099:10000-10099/udp"  # RTP media
+  #     volumes:
+  #       - asterisk-etc:/etc/asterisk
+  #       - asterisk-spool:/var/spool/asterisk
+  #       # Pre-built AMI config — no manual manager.conf setup needed
+  #       - ./asterisk-config/manager.conf:/etc/asterisk/manager.conf:ro
+  #       - ./asterisk-config/http.conf:/etc/asterisk/http.conf:ro
 
   # ─── Node.js App (Express + Vite SPA) ───────────────────────────────────
   # Uncomment for full Docker stack. Leave commented to run Node on host
